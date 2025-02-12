@@ -2,6 +2,15 @@
 
 ### Explanation:
 
+#### 1. Create a Database Connection
+
+Before using any methods, you need to include the ---dbconnect.php--- file by passing the required database connection credentials (host, user, password, and database name).
+
+```php 
+// Include the MyDatabase class
+require_once 'dbconnect.php';
+```
+
 #### Insert Data:
 The function ```insertData``` inserts a new record into the specified table.
 ##### Usage Example:
