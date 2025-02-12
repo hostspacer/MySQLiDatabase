@@ -56,8 +56,8 @@ function buildWhereClause($conditions) {
             $conjunction = $defaultConjunction;
         }
 
-        // Handle values that are arrays (for IN clauses)
         if (is_array($value)) {
+            // Handle IN clause with multiple values
             $placeholders = implode(', ', array_fill(0, count($value), '?'));
             $where[] = "$column IN ($placeholders)";
             $values = array_merge($values, $value);
@@ -76,6 +76,7 @@ function buildWhereClause($conditions) {
     $finalWhereClause = implode(' ', $where);
     return [$finalWhereClause, $values];
 }
+
 
 
 function executeStatement($sql, $types, $params) {
