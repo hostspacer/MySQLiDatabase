@@ -424,6 +424,24 @@ foreach ($users as $user) {
 }
 ```
 
+#### 8. Usage Example with various WHERE operands
+
+```php
+$conditions = [
+    'status:or' => 'Active',
+    'status:or' => 'Approved',
+    'age>' => 30,
+    'score>=' => 50,
+    'type!=' => 'guest',
+    'department' => ['Sales', 'Marketing', 'HR'],
+    'managerid:null' => null,
+    'supervisorid:!null' => null,
+];
+```
+Array value for department column indicates use of IN operator
+
+
+
 #### Summary of Methods:
 
     -- getInstance($dbhost, $dbuser, $dbpass, $dbname): Get the Singleton instance of the database connection.
