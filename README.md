@@ -40,12 +40,32 @@ $conditions = [
     'column2' => 42,  // Mixed data types
 ];
 
-$data = selectData('your_table_name', $conditions, '', '*', true);
+$data = selectData('your_table_name', $conditions, true);
 
 if ($data) {
     foreach ($data as $row){
         echo $row['column1'] . "<br>";
-        echo $row['column2'];
+        echo $row['column2'] . "<br>";
+    }
+} else {
+    echo "No data found.";
+}
+```
+
+##### Usage Example for object result:
+```php
+// Select data with conditions
+$conditions = [
+    'column1' => 'value1',
+    'column2' => 42,  // Mixed data types
+];
+
+$data = selectData('your_table_name', $conditions);
+
+if ($data) {
+    foreach ($data as $row){
+        echo $row->column1 . "<br>";
+        echo $row->column2 . "<br>";
     }
 } else {
     echo "No data found.";
@@ -60,7 +80,7 @@ $conditions = [
     'column2' => 42,  // Mixed data types
 ];
 $join = 'INNER JOIN your_table_name2 ON column1=your_table_name2.column';
-$data = selectData('your_table_name', $conditions, $join, '*', false);
+$data = selectData('your_table_name', $conditions, false, $join);
 
 if ($data) {
     foreach ($data as $row){
