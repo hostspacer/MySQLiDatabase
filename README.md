@@ -13,6 +13,7 @@ require_once 'dbconnect.php';
 
 #### Insert Data:
 The function ```insertData``` inserts a new record into the specified table.
+
 ##### Usage Example:
 ```php
 // Data to be inserted
@@ -77,6 +78,7 @@ if ($deleteSuccess) {
 
 #### Select Data:
 The function ```selectData``` deletes records from the specified table.
+
 ##### Usage Example for array result:
 ```php
 // Select data with conditions
@@ -136,6 +138,18 @@ if ($data) {
 } else {
     echo "No data found.";
 }
+```
+
+#### Usage Example with various WHERE operands
+
+```php
+$conditions = [
+    'status:or' => 'Active',
+    'status:or' => 'Approved',
+    'age>' => 30,
+    'score>=' => 50,
+    'type!=' => 'guest'
+];
 ```
 
 ## Parse Raw MySQLi Statement 
