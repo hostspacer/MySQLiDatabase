@@ -61,18 +61,18 @@ function buildWhereClause($conditions) {
                 $where[] = "$column IS NOT NULL";
             }
             $operator = null; // Null operator as no placeholder is needed
-        } elseif (is_array($value)) {
-            // Handle IN clause with multiple values
-            $placeholders = implode(', ', array_fill(0, count($value), '?'));
-            $where[] = "$column IN ($placeholders)";
-            $values = array_merge($values, $value);
-            $operator = null; // Null operator as no placeholder is needed
         } elseif (preg_match('/(.*)([<>!=]{1,2})$/', $column, $matches)) {
             // Handle custom operators
             $column = $matches[1];
             $operator = $matches[2];
             $where[] = "$column $operator ?";
             $values[] = $value;
+        } elseif (is_array($value)) {
+            // Handle IN clause with multiple values
+            $placeholders = implode(', ', array_fill(0, count($value), '?'));
+            $where[] = "$column IN ($placeholders)";
+            $values = array_merge($values, $value);
+            $operator = null; // Null operator as no placeholder is needed
         } else {
             // Default to '='
             $where[] = "$column = ?";
