@@ -24,8 +24,11 @@ if (!$con) {
 }
 
 function getDbConnection() {
-	
-	global $dbhost, $dbuser, $dbpass, $dbname;
+
+	$dbhost = 'localhost';     // Database host
+	$dbuser = 'root';  // Database username
+	$dbpass = 'your_password';  // Database password
+	$dbname = 'your_database_name';    // Database name
 	
     $conn = new mysqli($dbhost, $dbuser, $dbpass, $dbname);
 
