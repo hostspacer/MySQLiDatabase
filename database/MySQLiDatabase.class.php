@@ -36,27 +36,62 @@ class MySQLiDatabase {
     }
 
     // Build WHERE clause for queries
-    private function buildWhereClause($conditions) {
-        $where = [];
-        $values = [];
-
-        foreach ($conditions as $column => $condition) {
-            if (is_array($condition)) {
-                // Handle custom operators (e.g., ['>', 10])
-                $operator = $condition[0];
-                $value = $condition[1];
-                $where[] = "$column $operator ?";
-                $values[] = $value;
-            } else {
-                // Default to '='
-                $where[] = "$column = ?";
-                $values[] = $condition;
-            }
-        }
-
-        $whereClause = implode(' AND ', $where);
-        return [$whereClause, $values];
-    }
+	private function buildWhereClause($conditions) {
+	    if (empty($conditions)) {
+	        return ['', []];
+	    }
+	
+	    $where = [];
+	    $values = [];
+	    $defaultConjunction = 'AND'; // Default conjunction
+	
+	    foreach ($conditions as $key => $value) {
+	        $operator = '='; // Default operator
+	        $conjunction = $defaultConjunction;
+	
+	        // Handle 'OR' conjunction
+	        if (stripos($key, ':or') !== false) {
+	            $column = str_ireplace(':or', '', $key);
+	            $conjunction = 'OR';
+	        } else {
+	            $column = $key;
+	        }
+	
+	        // Handle IS NULL and IS NOT NULL
+	        if (preg_match('/(.*):(!?null)$/i', $column, $matches)) {
+	            $column = $matches[1];
+	            $nullCondition = strtoupper($matches[2]);
+	            $where[] = "$column IS " . ($nullCondition === 'NULL' ? 'NULL' : 'NOT NULL');
+	            continue; // Skip adding conjunction for NULL conditions
+	        }
+	
+	        // Handle IN clause with multiple values
+	        if (is_array($value)) {
+	            $placeholders = implode(', ', array_fill(0, count($value), '?'));
+	            $where[] = "$column IN ($placeholders)";
+	            $values = array_merge($values, $value);
+	            continue; // Skip adding conjunction for IN conditions
+	        }
+	
+	        // Handle custom operators
+	        if (preg_match('/(.*)([<>!=]{1,2})$/', $column, $matches)) {
+	            $column = $matches[1];
+	            $operator = $matches[2];
+	        }
+	
+	        // Default to '='
+	        $where[] = "$column $operator ?";
+	        $values[] = $value;
+	
+	        // Add conjunction if not the last condition
+	        if (next($conditions) !== false) {
+	            $where[] = $conjunction;
+	        }
+	    }
+	
+	    $finalWhereClause = implode(' ', $where);
+	    return [$finalWhereClause, $values];
+	}
 
     // Execute a prepared statement
     private function executeStatement($sql, $types, $params) {
