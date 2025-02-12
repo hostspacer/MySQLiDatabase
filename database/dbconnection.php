@@ -83,7 +83,7 @@ function executeTransaction($queries) {
     }
 }
 
-function selectData($table, $conditions = [], $join = '', $columns = '*', $asArray = false) {
+function selectData($table, $conditions = [], $asArray = false, $join = '', $columns = '*') {
     $conn = getDbConnection();
 
     // Build the query
