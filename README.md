@@ -237,3 +237,20 @@ if ($insertSuccess) {
     echo "Failed to insert data.";
 }
 ```
+
+#### Execute Multiple MySQLi Query Statements
+
+```php
+// Example usage
+$queries = [
+    "INSERT INTO your_table_name (column1, column2) VALUES ('value1', 'value2')",
+    "UPDATE your_table_name SET column1 = 'new_value1' WHERE column2 = 'value2'"
+];
+
+try {
+    $result = executeTransaction($queries);
+    echo "Transaction completed successfully.";
+} catch (Exception $e) {
+    echo "Transaction failed: " . $e->getMessage();
+}
+```
