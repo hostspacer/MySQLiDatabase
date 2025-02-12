@@ -39,23 +39,42 @@ function getDbConnection() {
 function buildWhereClause($conditions) {
     $where = [];
     $values = [];
+    $defaultConjunction = 'AND'; // Default conjunction
 
-    foreach ($conditions as $column => $condition) {
-        if (is_array($condition)) {
-            // Handle custom operators (e.g., ['>', 10])
-            $operator = $condition[0];
-            $value = $condition[1];
+    foreach ($conditions as $key => $value) {
+        // Check if the key contains an operator and/or conjunction
+        if (preg_match('/(.*):(or)/i', $key, $matches)) {
+            $column = $matches[1];
+            $conjunction = strtoupper($matches[2]);
+        } elseif (preg_match('/(.*)([<>!=]{1,2})$/', $key, $matches)) {
+            $column = $matches[1];
+            $operator = $matches[2];
+            $conjunction = $defaultConjunction;
+        } else {
+            $column = $key;
+            $operator = '=';
+            $conjunction = $defaultConjunction;
+        }
+
+        // Handle values that are arrays (for IN clauses)
+        if (is_array($value)) {
+            $placeholders = implode(', ', array_fill(0, count($value), '?'));
+            $where[] = "$column IN ($placeholders)";
+            $values = array_merge($values, $value);
+        } else {
             $where[] = "$column $operator ?";
             $values[] = $value;
-        } else {
-            // Default to '='
-            $where[] = "$column = ?";
-            $values[] = $condition;
         }
+
+        // Add conjunction
+        $where[] = $conjunction;
     }
 
-    $whereClause = implode(' AND ', $where);
-    return [$whereClause, $values];
+    // Remove the last conjunction
+    array_pop($where);
+
+    $finalWhereClause = implode(' ', $where);
+    return [$finalWhereClause, $values];
 }
 
 
