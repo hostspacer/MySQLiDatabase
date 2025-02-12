@@ -26,6 +26,27 @@ if ($lastInsertId) {
 
 #### Update Data:
 The function ```updateData``` updates existing records in the specified table.
+
+```php
+// Usage example
+$data = [
+    'column1' => 'new_value1',
+    'column2' => 100.50,
+];
+
+$conditions = [
+    'id' => 42,
+];
+
+$updateSuccess = updateData('your_table_name', $data, $conditions);
+
+if ($updateSuccess) {
+    echo "Data updated successfully.";
+} else {
+    echo "Failed to update data.";
+}
+```
+
         
 #### Delete Data:
 The function ```deleteData``` deletes records from the specified table.
