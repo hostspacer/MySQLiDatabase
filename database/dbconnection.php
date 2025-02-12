@@ -36,6 +36,7 @@ function getDbConnection() {
     return $conn;
 }
 
+
 function buildWhereClause($conditions) {
     if (empty($conditions)) {
         return ['', []];
@@ -49,20 +50,34 @@ function buildWhereClause($conditions) {
         $operator = '='; // Default operator
         $conjunction = $defaultConjunction;
 
+        // Extract column name and operator/conjunction
+        $column = $key;
+        $isOrCondition = false;
+
         // Handle 'OR' conjunction
         if (stripos($key, ':or') !== false) {
             $column = str_ireplace(':or', '', $key);
+            $isOrCondition = true;
             $conjunction = 'OR';
-        } else {
-            $column = $key;
         }
 
-        // Handle IS NULL and IS NOT NULL
-        if (preg_match('/(.*):(!?null)$/i', $column, $matches)) {
+        // Handle custom operators (e.g., >=, <=, !=, >, <)
+        if (preg_match('/([a-zA-Z_][a-zA-Z0-9_]*)([<>!=]{1,2})$/', $column, $matches)) {
+            $column = $matches[1];
+            $operator = $matches[2];
+        }
+
+        // Handle NULL conditions (e.g., status:null, status:!null)
+        if (preg_match('/([a-zA-Z_][a-zA-Z0-9_]*):(!?null)$/i', $column, $matches)) {
             $column = $matches[1];
             $nullCondition = strtoupper($matches[2]);
             $where[] = "$column IS " . ($nullCondition === 'NULL' ? 'NULL' : 'NOT NULL');
             continue; // Skip adding conjunction for NULL conditions
+        }
+
+        // Validate column name
+        if (!preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $column)) {
+            throw new InvalidArgumentException("Invalid column name: $column");
         }
 
         // Handle IN clause with multiple values
@@ -73,13 +88,7 @@ function buildWhereClause($conditions) {
             continue; // Skip adding conjunction for IN conditions
         }
 
-        // Handle custom operators
-        if (preg_match('/(.*)([<>!=]{1,2})$/', $column, $matches)) {
-            $column = $matches[1];
-            $operator = $matches[2];
-        }
-
-        // Default to '='
+        // Default to '=' or custom operator
         $where[] = "$column $operator ?";
         $values[] = $value;
 
@@ -89,10 +98,14 @@ function buildWhereClause($conditions) {
         }
     }
 
+    // Remove the last conjunction if it exists
+    if (end($where) === 'AND' || end($where) === 'OR') {
+        array_pop($where);
+    }
+
     $finalWhereClause = implode(' ', $where);
     return [$finalWhereClause, $values];
 }
-
 
 
 function executeStatement($sql, $types, $params) {
