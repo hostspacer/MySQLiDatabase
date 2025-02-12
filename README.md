@@ -268,7 +268,7 @@ Before using any methods, you need to get an instance of the MyDatabase class by
 require_once 'MySQLiDatabase.class.php';
 
 // Get the database instance (singleton pattern)
-$db = MyDatabase::getInstance('localhost', 'root', 'password', 'my_database');
+$db = MySQLiDatabase::getInstance('localhost', 'root', 'password', 'my_database');
 ```
 
 #### 2. Insert Data into a Table
