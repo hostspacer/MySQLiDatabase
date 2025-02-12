@@ -1,5 +1,15 @@
 <?php 
 
+/**
+ * MySQLiDatabase Helper File
+ *
+ * @package	MySQLiDatabase
+ * @subpackage	dbconnect.php
+ * @category	Helper
+ * @author(s)	Shivasis Biswal / Sasmita Biswal
+ * @useful 	MySQLi Database
+ */
+
 $dbhost = 'localhost';     // Database host
 $dbuser = 'root';  // Database username
 $dbpass = 'your_password';  // Database password
