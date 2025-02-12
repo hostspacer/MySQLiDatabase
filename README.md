@@ -7,7 +7,7 @@
 Before using any methods, you need to include the ``` dbconnect.php ``` file by passing the required database connection credentials (host, user, password, and database name).
 
 ```php 
-// Include the MyDatabase class
+// Include the dbconnect file
 require_once 'dbconnect.php';
 ```
 
@@ -273,7 +273,7 @@ try {
 Before using any methods, you need to get an instance of the MyDatabase class by passing the required database connection credentials (host, user, password, and database name).
 
 ```php 
-// Include the MyDatabase class
+// Include the MySQLiDatabase class
 require_once 'MySQLiDatabase.class.php';
 
 // Get the database instance (singleton pattern)
