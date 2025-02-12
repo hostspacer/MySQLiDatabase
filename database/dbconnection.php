@@ -11,10 +11,10 @@
  */
 
 // Define constants
-const DB_HOST = 'localhost';
-const DB_USER = 'root';
-const DB_PASS = 'your_password';
-const DB_NAME = 'your_database_name';
+const DB_HOST = 'localhost'; 		// Database host
+const DB_USER = 'root';			// Database username
+const DB_PASS = 'your_password';	// Database password
+const DB_NAME = 'your_database_name';	// Database name
 
 // Create connection
 $con = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
