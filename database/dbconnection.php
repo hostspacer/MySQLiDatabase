@@ -37,58 +37,57 @@ function getDbConnection() {
 }
 
 function buildWhereClause($conditions) {
+    if (empty($conditions)) {
+        return ['', []];
+    }
+
     $where = [];
     $values = [];
     $defaultConjunction = 'AND'; // Default conjunction
 
     foreach ($conditions as $key => $value) {
         $operator = '='; // Default operator
+        $conjunction = $defaultConjunction;
 
+        // Handle 'OR' conjunction
         if (stripos($key, ':or') !== false) {
-            // Handle 'OR' conjunction
             $column = str_ireplace(':or', '', $key);
             $conjunction = 'OR';
         } else {
             $column = $key;
-            $conjunction = $defaultConjunction;
         }
 
+        // Handle IS NULL and IS NOT NULL
         if (preg_match('/(.*):(!?null)$/i', $column, $matches)) {
-            // Handle IS NULL and IS NOT NULL
             $column = $matches[1];
             $nullCondition = strtoupper($matches[2]);
-            if ($nullCondition === 'NULL') {
-                $where[] = "$column IS NULL";
-            } else {
-                $where[] = "$column IS NOT NULL";
-            }
-            $operator = null; // Null operator as no placeholder is needed
-        } elseif (is_array($value)) {
-            // Handle IN clause with multiple values
+            $where[] = "$column IS " . ($nullCondition === 'NULL' ? 'NULL' : 'NOT NULL');
+            continue; // Skip adding conjunction for NULL conditions
+        }
+
+        // Handle IN clause with multiple values
+        if (is_array($value)) {
             $placeholders = implode(', ', array_fill(0, count($value), '?'));
             $where[] = "$column IN ($placeholders)";
             $values = array_merge($values, $value);
-            $operator = null; // Null operator as no placeholder is needed
-        } elseif (preg_match('/(.*)([<>!=]{1,2})$/', $column, $matches)) {
-            // Handle custom operators
-            $column = $matches[1];
-            $operator = $matches[2];
-            $where[] = "$column $operator ?";
-            $values[] = $value;
-        } else {
-            // Default to '='
-            $where[] = "$column = ?";
-            $values[] = $value;
+            continue; // Skip adding conjunction for IN conditions
         }
 
-        // Add conjunction
-        if ($operator !== null) {
+        // Handle custom operators
+        if (preg_match('/(.*)([<>!=]{1,2})$/', $column, $matches)) {
+            $column = $matches[1];
+            $operator = $matches[2];
+        }
+
+        // Default to '='
+        $where[] = "$column $operator ?";
+        $values[] = $value;
+
+        // Add conjunction if not the last condition
+        if (next($conditions) !== false) {
             $where[] = $conjunction;
         }
     }
-
-    // Remove the last conjunction
-    array_pop($where);
 
     $finalWhereClause = implode(' ', $where);
     return [$finalWhereClause, $values];
