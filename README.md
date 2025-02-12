@@ -148,7 +148,8 @@ $conditions = [
     'status:or' => 'Approved',
     'age>' => 30,
     'score>=' => 50,
-    'type!=' => 'guest'
+    'type!=' => 'guest',
+    'department' => ['Sales', 'Marketing', 'HR'] // value in array for IN operator
 ];
 ```
 
