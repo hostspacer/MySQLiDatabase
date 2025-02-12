@@ -42,32 +42,47 @@ function buildWhereClause($conditions) {
     $defaultConjunction = 'AND'; // Default conjunction
 
     foreach ($conditions as $key => $value) {
-        // Check if the key contains an operator and/or conjunction
-        if (preg_match('/(.*):(or)/i', $key, $matches)) {
-            $column = $matches[1];
-            $conjunction = strtoupper($matches[2]);
-        } elseif (preg_match('/(.*)([<>!=]{1,2})$/', $key, $matches)) {
-            $column = $matches[1];
-            $operator = $matches[2];
-            $conjunction = $defaultConjunction;
+        if (stripos($key, ':or') !== false) {
+            // Handle 'OR' conjunction
+            $column = str_ireplace(':or', '', $key);
+            $conjunction = 'OR';
         } else {
             $column = $key;
-            $operator = '=';
             $conjunction = $defaultConjunction;
         }
 
-        if (is_array($value)) {
+        if (preg_match('/(.*):(!?null)$/i', $column, $matches)) {
+            // Handle IS NULL and IS NOT NULL
+            $column = $matches[1];
+            $nullCondition = strtoupper($matches[2]);
+            if ($nullCondition === 'NULL') {
+                $where[] = "$column IS NULL";
+            } else {
+                $where[] = "$column IS NOT NULL";
+            }
+            $operator = null; // Null operator as no placeholder is needed
+        } elseif (is_array($value)) {
             // Handle IN clause with multiple values
             $placeholders = implode(', ', array_fill(0, count($value), '?'));
             $where[] = "$column IN ($placeholders)";
             $values = array_merge($values, $value);
-        } else {
+            $operator = null; // Null operator as no placeholder is needed
+        } elseif (preg_match('/(.*)([<>!=]{1,2})$/', $column, $matches)) {
+            // Handle custom operators
+            $column = $matches[1];
+            $operator = $matches[2];
             $where[] = "$column $operator ?";
+            $values[] = $value;
+        } else {
+            // Default to '='
+            $where[] = "$column = ?";
             $values[] = $value;
         }
 
         // Add conjunction
-        $where[] = $conjunction;
+        if ($operator !== null) {
+            $where[] = $conjunction;
+        }
     }
 
     // Remove the last conjunction
