@@ -93,6 +93,61 @@ if ($data) {
 }
 ```
 
+## Parse Raw SQLi Statement 
+
+### Usage Examples:
+
+#### Insert Data
+
+```php
+$rawSql = "INSERT INTO your_table_name (column1, column2) VALUES ('" . $_POST['name'] . "', '" . $_POST['email'] . "')";
+$insertSuccess = parseRawQuery($rawSql);
+
+if ($insertSuccess) {
+    echo "Data inserted successfully.";
+} else {
+    echo "Failed to insert data.";
+}
+```
+
+#### Update Data
+
+```php
+$rawSql = "UPDATE your_table_name SET column1 = '" . $_POST['name'] . "', column2 = '" . $_POST['email'] . "' WHERE id = " . $_POST['id'];
+$updateSuccess = parseRawQuery($rawSql);
+
+if ($updateSuccess) {
+    echo "Data updated successfully.";
+} else {
+    echo "Failed to update data.";
+}
+```
+
+#### Delete Data
+
+```php
+$rawSql = "DELETE FROM your_table_name WHERE id = " . $_POST['id'];
+$deleteSuccess = parseRawQuery($rawSql);
+
+if ($deleteSuccess) {
+    echo "Data deleted successfully.";
+} else {
+    echo "Failed to delete data.";
+}
+```
+
+#### Select Data
+
+```php
+$rawSql = "SELECT * FROM your_table_name ORDER BY column1 DESC";
+$rows = parseAndExecuteRawQuery($rawSql);
+
+if ($rows) {
+    print_r($rows); // Output the rows
+} else {
+    echo "No data found.";
+}
+```
 
 
 
