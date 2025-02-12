@@ -131,6 +131,7 @@ if ($data) {
 
 ## Parse Raw SQLi Statement 
 It will automatically convert your raw sql statement into a secure statement and then execute it for result.
+
 ### Usage Examples:
 
 #### Insert Data
@@ -185,5 +186,38 @@ if ($rows) {
 }
 ```
 
+## Othe Features
 
+#### Get Maximum Value
 
+```php
+// Usage example
+$table = 'your_table_name';
+$column = 'your_column_name';
+
+$maxValue = getMaxValue($table, $column);
+
+if ($maxValue !== null) {
+    echo "Maximum value in $column: " . $maxValue;
+} else {
+    echo "Failed to get maximum value.";
+}
+```
+
+#### Get Last Inserted Id
+```php
+// Usage example
+$data = [
+    'column1' => 'value1',
+    'column2' => 'value2',
+];
+
+$insertSuccess = insertData('your_table_name', $data);
+
+if ($insertSuccess) {
+    $lastInsertId = getLastInsertedId();
+    echo "Data inserted successfully. Last Inserted ID: " . $lastInsertId;
+} else {
+    echo "Failed to insert data.";
+}
+```
