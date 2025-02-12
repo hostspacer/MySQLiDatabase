@@ -204,6 +204,22 @@ if ($maxValue !== null) {
 }
 ```
 
+#### Get Minimum Value 
+
+```php
+// Usage example
+$table = 'your_table_name';
+$column = 'your_column_name';
+
+$minValue = getMinValue($table, $column);
+
+if ($minValue !== null) {
+    echo "Minimum value in $column: " . $minValue;
+} else {
+    echo "Failed to get minimum value.";
+}
+```
+
 #### Get Last Inserted Id
 ```php
 // Usage example
