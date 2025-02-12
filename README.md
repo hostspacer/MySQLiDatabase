@@ -94,7 +94,7 @@ if ($data) {
 ```
 
 ## Parse Raw SQLi Statement 
-
+It will automatically convert your raw sql statement into a secure statement and then execute it for result.
 ### Usage Examples:
 
 #### Insert Data
