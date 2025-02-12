@@ -129,7 +129,7 @@ if ($data) {
 }
 ```
 
-## Parse Raw SQLi Statement 
+## Parse Raw MySQLi Statement 
 It will automatically convert your raw sql statement into a secure statement and then execute it for result.
 
 ### Usage Examples:
