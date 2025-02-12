@@ -142,6 +142,7 @@ if ($data) {
 
 #### Usage Example with various WHERE operands
 
+
 ```php
 $conditions = [
     'status:or' => 'Active',
@@ -149,9 +150,11 @@ $conditions = [
     'age>' => 30,
     'score>=' => 50,
     'type!=' => 'guest',
-    'department' => ['Sales', 'Marketing', 'HR'] // value in array for IN operator
+    'department' => ['Sales', 'Marketing', 'HR'] 
 ];
 ```
+Array value for department column indicates use of IN operator
+
 
 ## Parse Raw MySQLi Statement 
 It will automatically convert your raw sql statement into a secure statement and then execute it for result.
