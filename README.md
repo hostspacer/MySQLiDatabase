@@ -265,7 +265,7 @@ Before using any methods, you need to get an instance of the MyDatabase class by
 
 ```php 
 // Include the MyDatabase class
-require_once 'MyDatabase.php';
+require_once 'MySQLiDatabase.class.php';
 
 // Get the database instance (singleton pattern)
 $db = MyDatabase::getInstance('localhost', 'root', 'password', 'my_database');
