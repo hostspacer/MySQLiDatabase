@@ -249,7 +249,7 @@ function getLastInsertedId() {
     $conn = getDbConnection();
     $inserted_id = $conn->insert_id;
     $conn->close();
-    return $inserted_id
+    return $inserted_id;
 }
 
 function getMaxValue($table, $column) {
