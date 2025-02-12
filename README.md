@@ -2,7 +2,7 @@
 
 ### Explanation:
 
-#### 1. Create a Database Connection
+#### Create a Database Connection
 
 Before using any methods, you need to include the ``` dbconnect.php ``` file by passing the required database connection credentials (host, user, password, and database name).
 
