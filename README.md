@@ -21,7 +21,7 @@ if ($lastInsertId) {
 } else {
     echo "Failed to insert data.";
 }
----
+```
 
 
 #### Update Data:
