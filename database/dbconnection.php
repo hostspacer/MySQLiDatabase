@@ -25,7 +25,6 @@ if (!$con) {
 }
 
 
-
 function getDbConnection() {
     // Use constants for connection parameters
     $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
