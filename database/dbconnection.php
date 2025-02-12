@@ -261,7 +261,6 @@ function getMaxValue($table, $column) {
         $row = $result->fetch_assoc();
         return $row['max_value'];
     } else {
-        echo "No data found";
         return null;
     }
 
@@ -281,7 +280,6 @@ function getMinValue($table, $column) {
         $row = $result->fetch_assoc();
         return $row['min_value'];
     } else {
-        echo "No data found";
         return null;
     }
 
@@ -328,7 +326,6 @@ function getRow($table, $conditions = [], $join = '', $columns = '*', $asArray =
     if ($row) {
         return $asArray ? (array) $row : $row;  // Convert object to array if needed
     } else {
-        echo "No data found";
         return null;
     }
 }
@@ -378,7 +375,6 @@ function getRows($table, $conditions = [], $join = '', $columns = '*', $asArray 
     if (!empty($rows)) {
         return $asArray ? array_map(function($obj) { return (array) $obj; }, $rows) : $rows;  // Convert each object to an array if needed
     } else {
-        echo "No data found";
         return null;
     }
 }
