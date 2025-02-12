@@ -10,27 +10,25 @@
  * @useful 	MySQLi Database
  */
 
-$dbhost = 'localhost';     // Database host
-$dbuser = 'root';  // Database username
-$dbpass = 'your_password';  // Database password
-$dbname = 'your_database_name';    // Database name
+// Define constants
+const DB_HOST = 'localhost';
+const DB_USER = 'root';
+const DB_PASS = 'your_password';
+const DB_NAME = 'your_database_name';
 
 // Create connection
-$con = mysqli_connect($dbhost, $dbuser, $dbpass, $dbname);
+$con = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 
 // Check connection
 if (!$con) {
 	die("Connection failed: " . mysqli_connect_error());
 }
 
-function getDbConnection() {
 
-	$dbhost = 'localhost';     // Database host
-	$dbuser = 'root';  // Database username
-	$dbpass = 'your_password';  // Database password
-	$dbname = 'your_database_name';    // Database name
-	
-    $conn = new mysqli($dbhost, $dbuser, $dbpass, $dbname);
+
+function getDbConnection() {
+    // Use constants for connection parameters
+    $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 
     // Check connection
     if ($conn->connect_error) {
@@ -38,7 +36,6 @@ function getDbConnection() {
     }
     return $conn;
 }
-
 
 function buildWhereClause($conditions) {
     $where = [];
