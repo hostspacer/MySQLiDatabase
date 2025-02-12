@@ -51,6 +51,21 @@ if ($updateSuccess) {
 #### Delete Data:
 The function ```deleteData``` deletes records from the specified table.
 
+```php
+// Usage example
+$conditions = [
+    'id' => 42,
+];
+
+$deleteSuccess = deleteData('your_table_name', $conditions);
+
+if ($deleteSuccess) {
+    echo "Data deleted successfully.";
+} else {
+    echo "Failed to delete data.";
+}
+```
+
 #### Select Data:
 The function ```selectData``` deletes records from the specified table.
 ##### Usage Example for array result:
