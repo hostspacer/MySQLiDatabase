@@ -1,4 +1,15 @@
 <?php 
+
+/**
+ * MySQLiDatabase Class File
+ *
+ * @package	MySQLiDatabase
+ * @subpackage	MySQLiDatabase.class.php
+ * @category	Helper
+ * @author(s)	Shivasis Biswal / Sasmita Biswal
+ * @useful 	MySQLi Database
+ */
+
 class MySQLiDatabase {
     private static $instance = null;
     private $conn;
