@@ -258,6 +258,11 @@ class MySQLiDatabase {
         return $this->conn->insert_id;
     }
 
+   // Get the last affected rows
+    public function getLastAffectedRows($conn) {
+	return $conn->affected_rows;
+    }
+
     // Get the maximum value of a column
     public function getMaxValue($table, $column) {
         if (empty($column)) return false;
