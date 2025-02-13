@@ -195,23 +195,27 @@ function selectData($table, $conditions = [], $asArray = false, $join = '', $col
     return $rows;
 }
 
-
-
-
+// insert data without column filters
 function insertData($table, $data) {
     $conn = getDbConnection();
+	
+	// Sanitize data
+    $sanitized_data = [];
+    foreach ($data as $key => $value) {
+       $sanitized_data[$key] = htmlspecialchars(trim($value), ENT_QUOTES, 'UTF-8');
+    }
 
-    $columns = implode(", ", array_keys($data));
-    $placeholders = implode(", ", array_fill(0, count($data), '?'));
+    $columns = implode(", ", array_keys($sanitized_data));
+    $placeholders = implode(", ", array_fill(0, count($sanitized_data), '?'));
     $sql = "INSERT INTO $table ($columns) VALUES ($placeholders)";
 
     $stmt = $conn->prepare($sql);
 
     $types = '';
-    foreach ($data as $value) {
+    foreach ($sanitized_data as $value) {
         $types .= (is_int($value)) ? 'i' : ((is_double($value)) ? 'd' : 's');
     }
-    $stmt->bind_param($types, ...array_values($data));
+    $stmt->bind_param($types, ...array_values($sanitized_data));
 
     $success = $stmt->execute();
     
@@ -224,12 +228,60 @@ function insertData($table, $data) {
 }
 
 
+// insert data with column filters
+function insertDataWithFilter($table, $data) {
+    $conn = getDbConnection();
+	
+	// Sanitize data
+    $sanitized_data = [];
+    foreach ($data as $key => $value) {
+       $sanitized_data[$key] = htmlspecialchars(trim($value), ENT_QUOTES, 'UTF-8');
+    }
+
+    // Fetch column names from the table
+   	$table_columns = getTableColumns($table);
+
+    // Filter $data to include only keys that exist in $table_columns
+    $filtered_data = array_filter($sanitized_data, function($key) use ($table_columns) {
+        return in_array($key, $table_columns);
+    }, ARRAY_FILTER_USE_KEY);
+
+    $columns = implode(", ", array_keys($filtered_data));
+    $placeholders = implode(", ", array_fill(0, count($filtered_data), '?'));
+    $sql = "INSERT INTO $table ($columns) VALUES ($placeholders)";
+
+    $stmt = $conn->prepare($sql);
+
+    $types = '';
+    foreach ($filtered_data as $value) {
+        $types .= (is_int($value)) ? 'i' : ((is_double($value)) ? 'd' : 's');
+    }
+    $stmt->bind_param($types, ...array_values($filtered_data));
+
+    $success = $stmt->execute();
+    
+    $lastInsertId = $success ? $conn->insert_id : null;
+
+    $stmt->close();
+    $conn->close();
+
+    return $lastInsertId;
+}
+
+
+// update data without column filters
 function updateData($table, $data, $conditions) {
     $conn = getDbConnection();
-
+	
+	// Sanitize data
+    $sanitized_data = [];
+    foreach ($data as $key => $value) {
+       $sanitized_data[$key] = htmlspecialchars(trim($value), ENT_QUOTES, 'UTF-8');
+    }
+	
     // Build the SET clause for the data
     $set = [];
-    foreach ($data as $column => $value) {
+    foreach ($sanitized_data as $column => $value) {
         $set[] = "$column = ?";
     }
     $setString = implode(", ", $set);
@@ -246,7 +298,7 @@ function updateData($table, $data, $conditions) {
     $stmt = $conn->prepare($sql);
 
     // Combine data and conditions
-    $params = array_merge(array_values($data), array_values($conditions));
+    $params = array_merge(array_values($sanitized_data), array_values($conditions));
     $types = '';
     foreach ($params as $value) {
         $types .= (is_int($value)) ? 'i' : ((is_double($value)) ? 'd' : 's');
@@ -260,6 +312,60 @@ function updateData($table, $data, $conditions) {
 
     return $success;
 }
+
+
+// update data with column filters
+function updateDataWithFilter($table, $data, $conditions) {
+    $conn = getDbConnection();
+	
+	// Sanitize data
+    $sanitized_data = [];
+    foreach ($data as $key => $value) {
+       $sanitized_data[$key] = htmlspecialchars(trim($value), ENT_QUOTES, 'UTF-8');
+    }
+
+    // Fetch column names from the table
+    $table_columns = getTableColumns($table);
+
+    // Filter $data to include only keys that exist in $table_columns
+    $filtered_data = array_filter($sanitized_data, function($key) use ($table_columns) {
+        return in_array($key, $table_columns);
+    }, ARRAY_FILTER_USE_KEY);
+
+    // Build the SET clause for the data
+    $set = [];
+    foreach ($filtered_data as $column => $value) {
+        $set[] = "$column = ?";
+    }
+    $setString = implode(", ", $set);
+
+    // Build the WHERE clause for the conditions
+    $where = [];
+    foreach ($conditions as $column => $value) {
+        $where[] = "$column = ?";
+    }
+    $whereString = implode(" AND ", $where);
+
+    $sql = "UPDATE $table SET $setString WHERE $whereString";
+
+    $stmt = $conn->prepare($sql);
+
+    // Combine filtered data and conditions
+    $params = array_merge(array_values($filtered_data), array_values($conditions));
+    $types = '';
+    foreach ($params as $value) {
+        $types .= (is_int($value)) ? 'i' : ((is_double($value)) ? 'd' : 's');
+    }
+    $stmt->bind_param($types, ...$params);
+
+    $success = $stmt->execute();
+
+    $stmt->close();
+    $conn->close();
+
+    return $success;
+}
+
 
 function deleteData($table, $conditions) {
     $conn = getDbConnection();
