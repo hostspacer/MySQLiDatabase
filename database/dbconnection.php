@@ -568,17 +568,24 @@ function getMinValue($table, $column, $conditions = []) {
     return $minValue;
 }
 
-function getRow($table, $conditions = [], $asArray = false, $join = '', $columns = '*') {
+function getRow($table, $conditions = [], $asArray = false, $joins = [], $columns = '*') {
     $conn = getDbConnection();
+	
+	if(!$table) return false;
+    
+    $sql = "SELECT $columns FROM $table";
 
-    if(!$table) return false;
+    // Add JOIN clauses if provided
+    if (!empty($joins)) {
+        $joinClause = buildJoinClause($joins);
+        $sql .= " $joinClause";
+    }
 
     // Build WHERE clause if conditions are provided
     if (!empty($conditions)) {
         list($whereClause, $values) = buildWhereClause($conditions);
-        $sql = !empty($join) ? "SELECT $columns FROM $table $join WHERE $whereClause" : "SELECT $columns FROM $table WHERE $whereClause";
+        $sql .= " WHERE $whereClause";
     } else {
-        $sql = !empty($join) ? "SELECT $columns FROM $table $join" : "SELECT $columns FROM $table";
         $values = [];
     }
 
@@ -587,16 +594,20 @@ function getRow($table, $conditions = [], $asArray = false, $join = '', $columns
     // Dynamically bind parameters if there are conditions
     if (!empty($conditions)) {
         $types = '';
-        foreach ($values as $value) {
-            if (is_int($value)) {
-                $types .= 'i';
-            } elseif (is_double($value)) {
-                $types .= 'd';
-            } else {
-                $types .= 's';
+		$params = [];
+        if (!empty($values) && is_array($values)) {
+            foreach ($values as $value) {
+                if (is_int($value)) {
+                    $types .= 'i';
+                } elseif (is_double($value)) {
+                    $types .= 'd';
+                } else {
+                    $types .= 's';
+                }
+				$params[] = $value;
             }
+            $stmt->bind_param($types, ...$params);
         }
-        $stmt->bind_param($types, ...$values);
     }
 
     $stmt->execute();
@@ -614,25 +625,47 @@ function getRow($table, $conditions = [], $asArray = false, $join = '', $columns
     }
 }
 
-function getRows($table, $conditions = [], $asArray = false, $join = '', $columns = '*') {
+
+function getRows($table, $conditions = [], $asArray = false, $joins = [], $columns = '*') {
     $conn = getDbConnection();
+    
+    if (!$table) {
+        return false;
+    }
+    
+    // Build the base SQL query
+    $sql = "SELECT $columns FROM $table";
 
-    if(!$table) return false;
-
-    // Build WHERE clause if conditions are provided
-    if (!empty($conditions)) {
-        list($whereClause, $values) = buildWhereClause($conditions);
-        $sql = !empty($join) ? "SELECT $columns FROM $table $join WHERE $whereClause" : "SELECT $columns FROM $table WHERE $whereClause";
-    } else {
-        $sql = !empty($join) ? "SELECT $columns FROM $table $join" : "SELECT $columns FROM $table";
-        $values = [];
+    // Add JOIN clauses if provided
+    if (!empty($joins)) {
+        $joinClause = buildJoinClause($joins);
+        $sql .= " $joinClause";
     }
 
-    $stmt = $conn->prepare($sql);
-
-    // Dynamically bind parameters if there are conditions
+    // Build WHERE clause if conditions are provided
+    $values = [];
     if (!empty($conditions)) {
+        list($whereClause, $values) = buildWhereClause($conditions);
+        $sql .= " WHERE $whereClause";
+    }
+
+    // Debugging output (remove in production)
+    echo "SQL Query: $sql\n";
+    if (!empty($conditions)) {
+        echo "WHERE Clause: $whereClause\n";
+        print_r($values);
+    }
+
+    // Prepare the SQL statement
+    $stmt = $conn->prepare($sql);
+    if (!$stmt) {
+        die('Prepare failed: ' . htmlspecialchars($conn->error));
+    }
+
+    // Dynamically bind parameters if there are conditions and values
+    if (!empty($conditions) && !empty($values)) {
         $types = '';
+        $params = [];
         foreach ($values as $value) {
             if (is_int($value)) {
                 $types .= 'i';
@@ -641,28 +674,28 @@ function getRows($table, $conditions = [], $asArray = false, $join = '', $column
             } else {
                 $types .= 's';
             }
+            $params[] = $value;
         }
-        $stmt->bind_param($types, ...$values);
+        $stmt->bind_param($types, ...$params);
     }
 
+    // Execute the query
     $stmt->execute();
     $result = $stmt->get_result();
 
+    // Fetch the rows
     $rows = [];
     if ($result->num_rows > 0) {
         while ($row = $result->fetch_object()) {
-            $rows[] = $row;  // Fetch each row as an object
+            $rows[] = $asArray ? (array) $row : $row;
         }
     }
 
+    // Clean up
     $stmt->close();
     $conn->close();
 
-    if (!empty($rows)) {
-        return $asArray ? array_map(function($obj) { return (array) $obj; }, $rows) : $rows;  // Convert each object to an array if needed
-    } else {
-        return null;
-    }
+    return $rows;
 }
 
 
