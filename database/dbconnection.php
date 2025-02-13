@@ -458,24 +458,69 @@ function getMaxValue($table, $column) {
     $conn->close();
 }
 
-function getMinValue($table, $column) {
+/**
+ * Get the minimum value of a column in a table, optionally filtered by conditions.
+ * @param string $table The table name.
+ * @param string $column The column name.
+ * @param array $conditions Optional conditions to filter the results.
+ * @return mixed The minimum value or null if no rows are found.
+ */
+function getMinValue($table, $column, $conditions = []) {
     $conn = getDbConnection();
-
-    if(!$table) return false;
-    if(empty($column)) return false;
     
-    // SQL query to get the minimum value
-    $sql = "SELECT MIN($column) AS min_value FROM $table";
-    $result = $conn->query($sql);
-
-    if ($result->num_rows > 0) {
-        $row = $result->fetch_assoc();
-        return $row['min_value'];
-    } else {
+    if (!$table || empty($column)) {
         return null;
     }
 
+    // Build the base SQL query
+    $sql = "SELECT MIN($column) AS min_value FROM $table";
+
+    // Add WHERE clause if conditions are provided
+    $values = [];
+    if (!empty($conditions)) {
+        list($whereClause, $values) = buildWhereClause($conditions);
+        $sql .= " WHERE $whereClause";
+    }
+
+    // Prepare the SQL statement
+    $stmt = $conn->prepare($sql);
+    if (!$stmt) {
+        die('Prepare failed: ' . htmlspecialchars($conn->error));
+    }
+
+    // Bind parameters if there are conditions
+    if (!empty($conditions) && !empty($values)) {
+        $types = '';
+        $params = [];
+        foreach ($values as $value) {
+            if (is_int($value)) {
+                $types .= 'i';
+            } elseif (is_double($value)) {
+                $types .= 'd';
+            } else {
+                $types .= 's';
+            }
+            $params[] = $value;
+        }
+        $stmt->bind_param($types, ...$params);
+    }
+
+    // Execute the query
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    // Fetch the result
+    $minValue = null;
+    if ($result->num_rows > 0) {
+        $row = $result->fetch_assoc();
+        $minValue = $row['min_value'];
+    }
+
+    // Clean up
+    $stmt->close();
     $conn->close();
+
+    return $minValue;
 }
 
 function getRow($table, $conditions = [], $asArray = false, $join = '', $columns = '*') {
