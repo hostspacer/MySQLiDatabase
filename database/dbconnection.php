@@ -144,6 +144,8 @@ function executeTransaction($queries) {
 function selectData($table, $conditions = [], $asArray = false, $join = '', $columns = '*') {
     $conn = getDbConnection();
 
+    if(!$table) return false;
+
     // Build the query
     $sql = "SELECT $columns FROM $table";
     if (!empty($join)) $sql .= " $join";
@@ -198,6 +200,9 @@ function selectData($table, $conditions = [], $asArray = false, $join = '', $col
 // insert data without column filters
 function insertData($table, $data) {
     $conn = getDbConnection();
+
+   if(!$table) return false;
+   if(empty($data)) return false;
 	
 	// Sanitize data
     $sanitized_data = [];
@@ -231,8 +236,11 @@ function insertData($table, $data) {
 // insert data with column filters
 function insertDataWithFilter($table, $data) {
     $conn = getDbConnection();
+
+   if(!$table) return false;
+   if(empty($data)) return false;
 	
-	// Sanitize data
+    // Sanitize data
     $sanitized_data = [];
     foreach ($data as $key => $value) {
        $sanitized_data[$key] = htmlspecialchars(trim($value), ENT_QUOTES, 'UTF-8');
@@ -272,6 +280,9 @@ function insertDataWithFilter($table, $data) {
 // update data without column filters
 function updateData($table, $data, $conditions) {
     $conn = getDbConnection();
+
+    if(!$table) return false;
+    if(empty($data)) return false;
 	
 	// Sanitize data
     $sanitized_data = [];
@@ -318,6 +329,9 @@ function updateData($table, $data, $conditions) {
 // update data with column filters
 function updateDataWithFilter($table, $data, $conditions) {
     $conn = getDbConnection();
+
+   if(!$table) return false;
+   if(empty($data)) return false;
 	
 	// Sanitize data
     $sanitized_data = [];
@@ -372,6 +386,8 @@ function updateDataWithFilter($table, $data, $conditions) {
 function deleteData($table, $conditions) {
     $conn = getDbConnection();
 
+    if(!$table) return false;
+
     // Build the WHERE clause for the conditions
     $where = [];
     foreach ($conditions as $column => $value) {
@@ -401,6 +417,8 @@ function deleteData($table, $conditions) {
 function getTableColumns($table) {
     $conn = getDbConnection();
 
+    if(!$table) return false;
+
     $columns = [];
     $result = $conn->query("DESCRIBE $table");
     while ($row = $result->fetch_assoc()) {
@@ -422,8 +440,9 @@ function getLastAffectedRows($conn) {
 
 function getMaxValue($table, $column) {
     $conn = getDbConnection();
-	
-	if(empty($column)) return false;
+
+    if(!$table) return false;
+    if(empty($column)) return false;
     
     // SQL query to get the maximum value
     $sql = "SELECT MAX($column) AS max_value FROM $table";
@@ -441,8 +460,9 @@ function getMaxValue($table, $column) {
 
 function getMinValue($table, $column) {
     $conn = getDbConnection();
-	
-	if(empty($column)) return false;
+
+    if(!$table) return false;
+    if(empty($column)) return false;
     
     // SQL query to get the minimum value
     $sql = "SELECT MIN($column) AS min_value FROM $table";
@@ -458,8 +478,10 @@ function getMinValue($table, $column) {
     $conn->close();
 }
 
-function getRow($table, $conditions = [], $join = '', $columns = '*', $asArray = false) {
+function getRow($table, $conditions = [], $asArray = false, $join = '', $columns = '*') {
     $conn = getDbConnection();
+
+    if(!$table) return false;
 
     // Build WHERE clause if conditions are provided
     if (!empty($conditions)) {
@@ -502,8 +524,10 @@ function getRow($table, $conditions = [], $join = '', $columns = '*', $asArray =
     }
 }
 
-function getRows($table, $conditions = [], $join = '', $columns = '*', $asArray = false) {
+function getRows($table, $conditions = [], $asArray = false, $join = '', $columns = '*') {
     $conn = getDbConnection();
+
+    if(!$table) return false;
 
     // Build WHERE clause if conditions are provided
     if (!empty($conditions)) {
