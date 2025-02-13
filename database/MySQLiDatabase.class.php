@@ -223,9 +223,15 @@ class MySQLiDatabase {
     public function updateData($table, $data, $conditions) {
         if (empty($data)) return false;
 
+	// Sanitize data
+    	$sanitized_data = [];
+    	foreach ($data as $key => $value) {
+       		$sanitized_data[$key] = htmlspecialchars(trim($value), ENT_QUOTES, 'UTF-8');
+    	}
+
         // Build the SET clause for the data
         $set = [];
-        foreach ($data as $column => $value) {
+        foreach ($sanitized_data as $column => $value) {
             $set[] = "$column = ?";
         }
         $setString = implode(", ", $set);
@@ -236,7 +242,7 @@ class MySQLiDatabase {
         $sql = "UPDATE $table SET $setString WHERE $whereClause";
 
         // Combine data and conditions
-        $params = array_merge(array_values($data), $conditionValues);
+        $params = array_merge(array_values($sanitized_data), $conditionValues);
         $types = '';
         foreach ($params as $value) {
             $types .= (is_int($value)) ? 'i' : ((is_double($value)) ? 'd' : 's');
