@@ -438,24 +438,69 @@ function getLastAffectedRows($conn) {
 }
 
 
-function getMaxValue($table, $column) {
+/**
+ * Get the maximum value of a column in a table, optionally filtered by conditions.
+ * @param string $table The table name.
+ * @param string $column The column name.
+ * @param array $conditions Optional conditions to filter the results.
+ * @return mixed The maximum value or null if no rows are found.
+ */
+function getMaxValue($table, $column, $conditions = []) {
     $conn = getDbConnection();
-
-    if(!$table) return false;
-    if(empty($column)) return false;
     
-    // SQL query to get the maximum value
-    $sql = "SELECT MAX($column) AS max_value FROM $table";
-    $result = $conn->query($sql);
-
-    if ($result->num_rows > 0) {
-        $row = $result->fetch_assoc();
-        return $row['max_value'];
-    } else {
+    if (!$table || empty($column)) {
         return null;
     }
 
+    // Build the base SQL query
+    $sql = "SELECT MAX($column) AS max_value FROM $table";
+
+    // Add WHERE clause if conditions are provided
+    $values = [];
+    if (!empty($conditions)) {
+        list($whereClause, $values) = buildWhereClause($conditions);
+        $sql .= " WHERE $whereClause";
+    }
+
+    // Prepare the SQL statement
+    $stmt = $conn->prepare($sql);
+    if (!$stmt) {
+        die('Prepare failed: ' . htmlspecialchars($conn->error));
+    }
+
+    // Bind parameters if there are conditions
+    if (!empty($conditions) && !empty($values)) {
+        $types = '';
+        $params = [];
+        foreach ($values as $value) {
+            if (is_int($value)) {
+                $types .= 'i';
+            } elseif (is_double($value)) {
+                $types .= 'd';
+            } else {
+                $types .= 's';
+            }
+            $params[] = $value;
+        }
+        $stmt->bind_param($types, ...$params);
+    }
+
+    // Execute the query
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    // Fetch the result
+    $maxValue = null;
+    if ($result->num_rows > 0) {
+        $row = $result->fetch_assoc();
+        $maxValue = $row['max_value'];
+    }
+
+    // Clean up
+    $stmt->close();
     $conn->close();
+
+    return $maxValue;
 }
 
 /**
