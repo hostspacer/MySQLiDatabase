@@ -412,8 +412,7 @@ function getTableColumns($table) {
 }
 
 function getLastInsertedId($conn) {
-    $inserted_id = $conn->insert_id;
-    return $inserted_id;
+    return $conn->insert_id;
 }
 
 function getMaxValue($table, $column) {
