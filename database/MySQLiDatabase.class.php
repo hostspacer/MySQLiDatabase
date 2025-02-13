@@ -106,6 +106,52 @@ class MySQLiDatabase {
 	    return [$finalWhereClause, $values];
 	}
 
+/**
+ * Build a JOIN clause for SQL queries.
+ * @param array $joins An array of join configurations.
+ * Each join configuration should be an array in the format: [table, condition, type].
+ * Example: ['users', 'users.id = orders.user_id', 'INNER']
+ * @return string The constructed JOIN clause.
+ * @throws InvalidArgumentException If the join configuration is invalid.
+ */
+function buildJoinClause($joins = []) {
+    if (empty($joins)) {
+        return '';
+    }
+
+    // Ensure $joins is an array of arrays
+    if (!is_array($joins[0])) {
+        $joins = [$joins];
+    }
+
+    $joinString = '';
+    foreach ($joins as $join) {
+        // Validate join configuration
+        if (!is_array($join) || count($join) !== 3) {
+            throw new InvalidArgumentException("Invalid join configuration. Expected format: [table, condition, type]");
+        }
+
+        list($join_table, $condition, $type) = $join;
+
+        // Validate table name
+        if (!preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $join_table)) {
+            throw new InvalidArgumentException("Invalid table name: $join_table");
+        }
+
+        // Validate join type
+        $validJoinTypes = ['INNER', 'LEFT', 'RIGHT', 'FULL', 'CROSS'];
+        $type = strtoupper($type);
+        if (!in_array($type, $validJoinTypes)) {
+            throw new InvalidArgumentException("Invalid join type: $type");
+        }
+
+        // Append to the join string
+        $joinString .= "$type JOIN $join_table ON $condition ";
+    }
+
+    return trim($joinString);
+}
+
     // Execute a prepared statement
     private function executeStatement($sql, $types, $params) {
         $stmt = $this->conn->prepare($sql);
