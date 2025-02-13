@@ -266,6 +266,22 @@ class MySQLiDatabase {
         return $this->executeStatement($sql, $types, $values);
     }
 
+   // Get table columns
+    public function getTableColumns($table) {
+	    $conn = getDbConnection();
+
+	    if(!$table) return false;
+	
+	    $columns = [];
+	    $result = $conn->query("DESCRIBE $table");
+	    while ($row = $result->fetch_assoc()) {
+	        $columns[] = $row['Field'];
+	    }
+	
+	    $conn->close();
+	    return $columns;
+   }
+
     // Get the last inserted ID
     public function getLastInsertedId() {
         return $this->conn->insert_id;
