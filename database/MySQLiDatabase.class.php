@@ -489,16 +489,128 @@ public function getMinValue($table, $column, $conditions = []) {
     return $minValue;
 }
 
-    // Get a single row from a table
-    public function getRow($table, $conditions = [], $asArray = false, $join = '', $columns = '*') {
-        $rows = $this->selectData($table, $conditions, $asArray, $join, $columns);
-        return !empty($rows) ? $rows[0] : null;
+public function getRow($table, $conditions = [], $asArray = false, $joins = [], $columns = '*') {
+    $conn = getDbConnection();
+	
+	if(!$table) return false;
+    
+    $sql = "SELECT $columns FROM $table";
+
+    // Add JOIN clauses if provided
+    if (!empty($joins)) {
+        $joinClause = buildJoinClause($joins);
+        $sql .= " $joinClause";
     }
 
-    // Get multiple rows from a table
-    public function getRows($table, $conditions = [], $asArray = false, $join = '', $columns = '*') {
-        return $this->selectData($table, $conditions, $asArray, $join, $columns);
+    // Build WHERE clause if conditions are provided
+    if (!empty($conditions)) {
+        list($whereClause, $values) = buildWhereClause($conditions);
+        $sql .= " WHERE $whereClause";
+    } else {
+        $values = [];
     }
+
+    $stmt = $conn->prepare($sql);
+
+    // Dynamically bind parameters if there are conditions
+    if (!empty($conditions)) {
+        $types = '';
+		$params = [];
+        if (!empty($values) && is_array($values)) {
+            foreach ($values as $value) {
+                if (is_int($value)) {
+                    $types .= 'i';
+                } elseif (is_double($value)) {
+                    $types .= 'd';
+                } else {
+                    $types .= 's';
+                }
+				$params[] = $value;
+            }
+            $stmt->bind_param($types, ...$params);
+        }
+    }
+
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    $row = $result->num_rows > 0 ? $result->fetch_object() : null;  // Fetch as object if found
+
+    $stmt->close();
+    $conn->close();
+
+    if ($row) {
+        return $asArray ? (array) $row : $row;  // Convert object to array if needed
+    } else {
+        return null;
+    }
+}
+
+
+public function getRows($table, $conditions = [], $asArray = false, $joins = [], $columns = '*') {
+    $conn = getDbConnection();
+    
+    if (!$table) {
+        return false;
+    }
+    
+    // Build the base SQL query
+    $sql = "SELECT $columns FROM $table";
+
+    // Add JOIN clauses if provided
+    if (!empty($joins)) {
+        $joinClause = buildJoinClause($joins);
+        $sql .= " $joinClause";
+    }
+
+    // Build WHERE clause if conditions are provided
+    $values = [];
+    if (!empty($conditions)) {
+        list($whereClause, $values) = buildWhereClause($conditions);
+        $sql .= " WHERE $whereClause";
+    }
+
+    // Prepare the SQL statement
+    $stmt = $conn->prepare($sql);
+    if (!$stmt) {
+        die('Prepare failed: ' . htmlspecialchars($conn->error));
+    }
+
+    // Dynamically bind parameters if there are conditions and values
+    if (!empty($conditions) && !empty($values)) {
+        $types = '';
+        $params = [];
+        foreach ($values as $value) {
+            if (is_int($value)) {
+                $types .= 'i';
+            } elseif (is_double($value)) {
+                $types .= 'd';
+            } else {
+                $types .= 's';
+            }
+            $params[] = $value;
+        }
+        $stmt->bind_param($types, ...$params);
+    }
+
+    // Execute the query
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    // Fetch the rows
+    $rows = [];
+    if ($result->num_rows > 0) {
+        while ($row = $result->fetch_object()) {
+            $rows[] = $asArray ? (array) $row : $row;
+        }
+    }
+
+    // Clean up
+    $stmt->close();
+    $conn->close();
+
+    return $rows;
+}
 
     // Parse and execute a raw SQL query
     public function parseRawQuery($rawSql) {
