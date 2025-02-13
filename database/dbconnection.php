@@ -189,38 +189,49 @@ function executeTransaction($queries) {
     }
 }
 
-function selectData($table, $conditions = [], $asArray = false, $join = '', $columns = '*') {
+function selectData($table, $conditions = [], $asArray = false, $joins = [], $columns = '*') {
     $conn = getDbConnection();
-
-    if(!$table) return false;
+	
+   if(!$table) return false;
 
     // Build the query
     $sql = "SELECT $columns FROM $table";
-    if (!empty($join)) $sql .= " $join";
+    
+    if (!empty($joins)) {
+        $joinClause = buildJoinClause($joins);
+        $sql .= " $joinClause";
+    }
+    
     if (!empty($conditions)) {
-        $whereClause = implode(' AND ', array_map(function($key) {
-            return "$key = ?";
-        }, array_keys($conditions)));
+        list($whereClause, $values) = buildWhereClause($conditions);
         $sql .= " WHERE $whereClause";
+    } else {
+        $values = [];
     }
 
     $stmt = $conn->prepare($sql);
+    if ($stmt === false) {
+        die('Prepare failed: ' . htmlspecialchars($conn->error));
+    }
 
     // Dynamically determine types for bind_param
-    $types = '';
-    foreach ($conditions as $value) {
-        if (is_int($value)) {
-            $types .= 'i';
-        } elseif (is_double($value)) {
-            $types .= 'd';
-        } else {
-            $types .= 's';
-        }
-    }
-
-    if (!empty($conditions)) {
-        $stmt->bind_param($types, ...array_values($conditions));
-    }
+	if (!empty($conditions)) {
+    	$types = '';
+		$params = [];
+		if (!empty($values) && is_array($values)) {
+			foreach ($values as $value) {
+				if (is_int($value)) {
+					$types .= 'i';
+				} elseif (is_double($value)) {
+					$types .= 'd';
+				} else {
+					$types .= 's';
+				}
+				$params[] = $value;
+			}
+			$stmt->bind_param($types, ...$params);
+		}
+	}
 
     $stmt->execute();
     $result = $stmt->get_result();
@@ -228,14 +239,7 @@ function selectData($table, $conditions = [], $asArray = false, $join = '', $col
     $rows = [];
     if ($result->num_rows > 0) {
         while ($row = $result->fetch_object()) {
-            $rows[] = $row;
-        }
-
-        if ($asArray) {
-            // Convert each object to an array
-            $rows = array_map(function($obj) {
-                return (array) $obj;
-            }, $rows);
+            $rows[] = $asArray ? (array) $row : $row;
         }
     }
 
@@ -244,6 +248,7 @@ function selectData($table, $conditions = [], $asArray = false, $join = '', $col
 
     return $rows;
 }
+
 
 // insert data without column filters
 function insertData($table, $data) {
