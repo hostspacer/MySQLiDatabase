@@ -115,9 +115,10 @@ class MySQLiDatabase {
         $stmt->bind_param($types, ...$params);
 
         $success = $stmt->execute();
+	$affectedRows = $stmt->affected_rows;
         $stmt->close();
 
-        return $success;
+    	return $affectedRows;
     }
 
     // Execute a transaction
