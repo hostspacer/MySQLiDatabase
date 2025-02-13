@@ -193,14 +193,20 @@ class MySQLiDatabase {
     public function insertData($table, $data) {
         if (empty($data)) return false;
 
-        $columns = implode(", ", array_keys($data));
-        $placeholders = implode(", ", array_fill(0, count($data), '?'));
+	// Sanitize data
+    	$sanitized_data = [];
+    	foreach ($data as $key => $value) {
+       		$sanitized_data[$key] = htmlspecialchars(trim($value), ENT_QUOTES, 'UTF-8');
+    	}
+
+        $columns = implode(", ", array_keys($sanitized_data));
+        $placeholders = implode(", ", array_fill(0, count($sanitized_data), '?'));
         $sql = "INSERT INTO $table ($columns) VALUES ($placeholders)";
 
         $stmt = $this->conn->prepare($sql);
 
         $types = '';
-        foreach ($data as $value) {
+        foreach ($sanitized_data as $value) {
             $types .= (is_int($value)) ? 'i' : ((is_double($value)) ? 'd' : 's');
         }
         $stmt->bind_param($types, ...array_values($data));
