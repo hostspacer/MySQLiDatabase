@@ -114,7 +114,7 @@ class MySQLiDatabase {
  * @return string The constructed JOIN clause.
  * @throws InvalidArgumentException If the join configuration is invalid.
  */
-function buildJoinClause($joins = []) {
+private function buildJoinClause($joins = []) {
     if (empty($joins)) {
         return '';
     }
@@ -189,57 +189,65 @@ function buildJoinClause($joins = []) {
     }
 
     // Select data from a table
-    public function selectData($table, $conditions = [], $asArray = false, $join = '', $columns = '*') {
-
+    public function selectData($table, $conditions = [], $asArray = false, $joins = [], $columns = '*') {
+    $conn = getDbConnection();
+	
 	if(!$table) return false;
-	    
-        // Build the query
-        $sql = "SELECT $columns FROM $table";
-        if (!empty($join)) $sql .= " $join";
-        if (!empty($conditions)) {
-            list($whereClause, $values) = $this->buildWhereClause($conditions);
-            $sql .= " WHERE $whereClause";
-        }
 
-        $stmt = $this->conn->prepare($sql);
-
-        // Dynamically determine types for bind_param
-        $types = '';
-        foreach ($values as $value) {
-            if (is_int($value)) {
-                $types .= 'i';
-            } elseif (is_double($value)) {
-                $types .= 'd';
-            } else {
-                $types .= 's';
-            }
-        }
-
-        if (!empty($conditions)) {
-            $stmt->bind_param($types, ...$values);
-        }
-
-        $stmt->execute();
-        $result = $stmt->get_result();
-
-        $rows = [];
-        if ($result->num_rows > 0) {
-            while ($row = $result->fetch_object()) {
-                $rows[] = $row;
-            }
-
-            if ($asArray) {
-                // Convert each object to an array
-                $rows = array_map(function($obj) {
-                    return (array) $obj;
-                }, $rows);
-            }
-        }
-
-        $stmt->close();
-
-        return $rows;
+    // Build the query
+    $sql = "SELECT $columns FROM $table";
+    
+    if (!empty($joins)) {
+        $joinClause = buildJoinClause($joins);
+        $sql .= " $joinClause";
     }
+    
+    if (!empty($conditions)) {
+        list($whereClause, $values) = buildWhereClause($conditions);
+        $sql .= " WHERE $whereClause";
+    } else {
+        $values = [];
+    }
+
+    $stmt = $conn->prepare($sql);
+    if ($stmt === false) {
+        die('Prepare failed: ' . htmlspecialchars($conn->error));
+    }
+
+    // Dynamically determine types for bind_param
+	if (!empty($conditions)) {
+    	$types = '';
+		$params = [];
+		if (!empty($values) && is_array($values)) {
+			foreach ($values as $value) {
+				if (is_int($value)) {
+					$types .= 'i';
+				} elseif (is_double($value)) {
+					$types .= 'd';
+				} else {
+					$types .= 's';
+				}
+				$params[] = $value;
+			}
+			$stmt->bind_param($types, ...$params);
+		}
+	}
+
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    $rows = [];
+    if ($result->num_rows > 0) {
+        while ($row = $result->fetch_object()) {
+            $rows[] = $asArray ? (array) $row : $row;
+        }
+    }
+
+    $stmt->close();
+    $conn->close();
+
+    return $rows;
+}
 
     // Insert data into a table
     public function insertData($table, $data) {
