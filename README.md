@@ -77,7 +77,7 @@ if ($deleteSuccess) {
 ```
 
 #### Select Data:
-The function ```selectData``` selects records from the specified table. You can also use methods ```getRow``` to select single row and ```getRows``` to select multiple rows in the same way respectively.
+The function ```selectData``` selects records from the specified table. You can also use methods ```getRow``` to select a single row and ```getRows``` to select multiple rows in the same way.
 
 ##### Usage Example for array result:
 ```php
