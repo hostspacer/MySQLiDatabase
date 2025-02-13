@@ -123,6 +123,9 @@ class MySQLiDatabase {
 
     // Execute a transaction
     public function executeTransaction($queries) {
+
+	if(!$queries) return false;
+	    
         $this->conn->begin_transaction();
 
         try {
