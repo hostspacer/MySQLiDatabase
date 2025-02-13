@@ -415,6 +415,11 @@ function getLastInsertedId($conn) {
     return $conn->insert_id;
 }
 
+function getLastAffectedRows($conn) {
+    return $conn->affected_rows;
+}
+
+
 function getMaxValue($table, $column) {
     $conn = getDbConnection();
 	
