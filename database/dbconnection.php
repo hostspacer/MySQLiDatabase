@@ -360,11 +360,12 @@ function updateDataWithFilter($table, $data, $conditions) {
     $stmt->bind_param($types, ...$params);
 
     $success = $stmt->execute();
+    $affectedRows = $stmt->affected_rows;
 
     $stmt->close();
     $conn->close();
 
-    return $success;
+    return $affectedRows;
 }
 
 
