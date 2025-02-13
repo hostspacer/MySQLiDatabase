@@ -411,11 +411,8 @@ function getTableColumns($table) {
     return $columns;
 }
 
-
-function getLastInsertedId() {
-    $conn = getDbConnection();
+function getLastInsertedId($conn) {
     $inserted_id = $conn->insert_id;
-    $conn->close();
     return $inserted_id;
 }
 
