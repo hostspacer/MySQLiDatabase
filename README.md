@@ -129,7 +129,7 @@ $conditions = [
     'column1' => 'value1',
     'column2' => 42,  // Mixed data types
 ];
-$join = ['your_table_name2', your_table_name.column1=your_table_name2.column', 'inner'];
+$join = ['your_table_name2', 'your_table_name.column1=your_table_name2.column', 'inner'];
 $data = selectData('your_table_name', $conditions, false, $join);
 
 if ($data) {
@@ -153,10 +153,10 @@ $conditions = [
 ];
 
 $joins = [
-    ['your_table_name2', your_table_name.column1=your_table_name2.column', 'inner'],
-    ['your_table_name3', your_table_name.column2=your_table_name3.column', 'inner'],
-    ['your_table_name4', your_table_name.column3=your_table_name4.column', 'left'],
-    ['your_table_name5', your_table_name.column1=your_table_name5.column', 'right']
+    ['your_table_name2', 'your_table_name.column1=your_table_name2.column', 'inner'],
+    ['your_table_name3', 'your_table_name.column2=your_table_name3.column', 'inner'],
+    ['your_table_name4', 'your_table_name.column3=your_table_name4.column', 'left'],
+    ['your_table_name5', 'your_table_name.column1=your_table_name5.column', 'right']
 ];
     
 $data = selectData('your_table_name', $conditions, false, $joins);
