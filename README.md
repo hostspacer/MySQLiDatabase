@@ -159,7 +159,7 @@ $joins = [
     ['your_table_name5', your_table_name.column1=your_table_name5.column', 'right']
 ];
     
-$data = selectData('your_table_name', $conditions, false, $join);
+$data = selectData('your_table_name', $conditions, false, $joins);
 
 if ($data) {
     foreach ($data as $row){
