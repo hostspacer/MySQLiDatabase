@@ -292,11 +292,17 @@ $data = [
 $insertSuccess = insertData('your_table_name', $data);
 
 if ($insertSuccess) {
-    $lastInsertId = getLastInsertedId();
+    $lastInsertId = $insertSuccess;
     echo "Data inserted successfully. Last Inserted ID: " . $lastInsertId;
 } else {
     echo "Failed to insert data.";
 }
+```
+Also you cn get like this
+
+```php
+$conn = getDbConnection();
+$lastInsertId = getLastInsertedId($conn);
 ```
 
 #### Execute Multiple MySQLi Query Statements
