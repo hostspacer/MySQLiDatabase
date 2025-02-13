@@ -120,13 +120,45 @@ if ($data) {
 ```
 
 ##### Usage Example using join:
+
+For Single Table Join
+
 ```php
 // Select data with conditions
 $conditions = [
     'column1' => 'value1',
     'column2' => 42,  // Mixed data types
 ];
-$join = 'INNER JOIN your_table_name2 ON column1=your_table_name2.column';
+$join = ['your_table_name2', your_table_name.column1=your_table_name2.column', 'inner'];
+$data = selectData('your_table_name', $conditions, false, $join);
+
+if ($data) {
+    foreach ($data as $row){
+        echo $row->column1 . "<br>";
+        echo $row->column2 . "<br>";
+         echo $row->column;
+    }
+} else {
+    echo "No data found.";
+}
+```
+
+For Multiple Table Join
+
+```php
+// Select data with conditions
+$conditions = [
+    'column1' => 'value1',
+    'column2' => 42,  // Mixed data types
+];
+
+$joins = [
+    ['your_table_name2', your_table_name.column1=your_table_name2.column', 'inner'],
+    ['your_table_name3', your_table_name.column2=your_table_name3.column', 'inner'],
+    ['your_table_name4', your_table_name.column3=your_table_name4.column', 'left'],
+    ['your_table_name5', your_table_name.column1=your_table_name5.column', 'right']
+];
+    
 $data = selectData('your_table_name', $conditions, false, $join);
 
 if ($data) {
