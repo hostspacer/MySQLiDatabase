@@ -305,39 +305,135 @@ class MySQLiDatabase {
 	return $conn->affected_rows;
     }
 
-    // Get the maximum value of a column
-    public function getMaxValue($table, $column) {
-
-	if(!$table) return false;
-        if (empty($column)) return false;
-
-        $sql = "SELECT MAX($column) AS max_value FROM $table";
-        $result = $this->conn->query($sql);
-
-        if ($result->num_rows > 0) {
-            $row = $result->fetch_assoc();
-            return $row['max_value'];
-        } else {
-            return null;
-        }
+/**
+ * Get the maximum value of a column in a table, optionally filtered by conditions.
+ * @param string $table The table name.
+ * @param string $column The column name.
+ * @param array $conditions Optional conditions to filter the results.
+ * @return mixed The maximum value or null if no rows are found.
+ */
+public function getMaxValue($table, $column, $conditions = []) {
+    $conn = getDbConnection();
+    
+    if (!$table || empty($column)) {
+        return null;
     }
 
-    // Get the minimum value of a column
-    public function getMinValue($table, $column) {
+    // Build the base SQL query
+    $sql = "SELECT MAX($column) AS max_value FROM $table";
 
-	if(!$table) return false;
-        if (empty($column)) return false;
-
-        $sql = "SELECT MIN($column) AS min_value FROM $table";
-        $result = $this->conn->query($sql);
-
-        if ($result->num_rows > 0) {
-            $row = $result->fetch_assoc();
-            return $row['min_value'];
-        } else {
-            return null;
-        }
+    // Add WHERE clause if conditions are provided
+    $values = [];
+    if (!empty($conditions)) {
+        list($whereClause, $values) = buildWhereClause($conditions);
+        $sql .= " WHERE $whereClause";
     }
+
+    // Prepare the SQL statement
+    $stmt = $conn->prepare($sql);
+    if (!$stmt) {
+        die('Prepare failed: ' . htmlspecialchars($conn->error));
+    }
+
+    // Bind parameters if there are conditions
+    if (!empty($conditions) && !empty($values)) {
+        $types = '';
+        $params = [];
+        foreach ($values as $value) {
+            if (is_int($value)) {
+                $types .= 'i';
+            } elseif (is_double($value)) {
+                $types .= 'd';
+            } else {
+                $types .= 's';
+            }
+            $params[] = $value;
+        }
+        $stmt->bind_param($types, ...$params);
+    }
+
+    // Execute the query
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    // Fetch the result
+    $maxValue = null;
+    if ($result->num_rows > 0) {
+        $row = $result->fetch_assoc();
+        $maxValue = $row['max_value'];
+    }
+
+    // Clean up
+    $stmt->close();
+    $conn->close();
+
+    return $maxValue;
+}
+
+/**
+ * Get the minimum value of a column in a table, optionally filtered by conditions.
+ * @param string $table The table name.
+ * @param string $column The column name.
+ * @param array $conditions Optional conditions to filter the results.
+ * @return mixed The minimum value or null if no rows are found.
+ */
+public function getMinValue($table, $column, $conditions = []) {
+    $conn = getDbConnection();
+    
+    if (!$table || empty($column)) {
+        return null;
+    }
+
+    // Build the base SQL query
+    $sql = "SELECT MIN($column) AS min_value FROM $table";
+
+    // Add WHERE clause if conditions are provided
+    $values = [];
+    if (!empty($conditions)) {
+        list($whereClause, $values) = buildWhereClause($conditions);
+        $sql .= " WHERE $whereClause";
+    }
+
+    // Prepare the SQL statement
+    $stmt = $conn->prepare($sql);
+    if (!$stmt) {
+        die('Prepare failed: ' . htmlspecialchars($conn->error));
+    }
+
+    // Bind parameters if there are conditions
+    if (!empty($conditions) && !empty($values)) {
+        $types = '';
+        $params = [];
+        foreach ($values as $value) {
+            if (is_int($value)) {
+                $types .= 'i';
+            } elseif (is_double($value)) {
+                $types .= 'd';
+            } else {
+                $types .= 's';
+            }
+            $params[] = $value;
+        }
+        $stmt->bind_param($types, ...$params);
+    }
+
+    // Execute the query
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    // Fetch the result
+    $minValue = null;
+    if ($result->num_rows > 0) {
+        $row = $result->fetch_assoc();
+        $minValue = $row['min_value'];
+    }
+
+    // Clean up
+    $stmt->close();
+    $conn->close();
+
+    return $minValue;
+}
 
     // Get a single row from a table
     public function getRow($table, $conditions = [], $asArray = false, $join = '', $columns = '*') {
