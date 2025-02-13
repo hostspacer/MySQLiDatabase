@@ -144,6 +144,9 @@ class MySQLiDatabase {
 
     // Select data from a table
     public function selectData($table, $conditions = [], $asArray = false, $join = '', $columns = '*') {
+
+	if(!$table) return false;
+	    
         // Build the query
         $sql = "SELECT $columns FROM $table";
         if (!empty($join)) $sql .= " $join";
@@ -194,6 +197,8 @@ class MySQLiDatabase {
 
     // Insert data into a table
     public function insertData($table, $data) {
+
+	if(!$table) return false;    
         if (empty($data)) return false;
 
 	// Sanitize data
@@ -224,6 +229,8 @@ class MySQLiDatabase {
 
     // Update data in a table
     public function updateData($table, $data, $conditions) {
+
+	if(!$table) return false;
         if (empty($data)) return false;
 
 	// Sanitize data
@@ -256,6 +263,9 @@ class MySQLiDatabase {
 
     // Delete data from a table
     public function deleteData($table, $conditions) {
+
+	if(!$table) return false;
+	    
         // Build the WHERE clause for the conditions
         list($whereClause, $values) = $this->buildWhereClause($conditions);
 
@@ -297,6 +307,8 @@ class MySQLiDatabase {
 
     // Get the maximum value of a column
     public function getMaxValue($table, $column) {
+
+	if(!$table) return false;
         if (empty($column)) return false;
 
         $sql = "SELECT MAX($column) AS max_value FROM $table";
@@ -312,6 +324,8 @@ class MySQLiDatabase {
 
     // Get the minimum value of a column
     public function getMinValue($table, $column) {
+
+	if(!$table) return false;
         if (empty($column)) return false;
 
         $sql = "SELECT MIN($column) AS min_value FROM $table";
@@ -338,6 +352,9 @@ class MySQLiDatabase {
 
     // Parse and execute a raw SQL query
     public function parseRawQuery($rawSql) {
+	    
+	if(!$rawSql) return false;
+	    
         // Determine the SQL operation (e.g., INSERT, UPDATE, DELETE, SELECT)
         $operation = strtoupper(strtok($rawSql, " "));
 
