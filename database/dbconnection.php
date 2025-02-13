@@ -390,11 +390,12 @@ function deleteData($table, $conditions) {
     $stmt->bind_param($types, ...array_values($conditions));
 
     $success = $stmt->execute();
+    $affectedRows = $stmt->affected_rows;
 
     $stmt->close();
     $conn->close();
 
-    return $success;
+    return $affectedRows;
 }
 
 function getTableColumns($table) {
