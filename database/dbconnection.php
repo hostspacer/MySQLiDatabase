@@ -62,21 +62,21 @@ function buildWhereClause($conditions) {
         }
 
         // Handle custom operators (e.g., >=, <=, !=, >, <)
-        if (preg_match('/([a-zA-Z_][a-zA-Z0-9_]*)([<>!=]{1,2})$/', $column, $matches)) {
+        if (preg_match('/([a-zA-Z_][a-zA-Z0-9_]*\.[a-zA-Z_][a-zA-Z0-9_]*)([<>!=]{1,2})$/', $column, $matches)) {
             $column = $matches[1];
             $operator = $matches[2];
         }
 
         // Handle NULL conditions (e.g., status:null, status:!null)
-        if (preg_match('/([a-zA-Z_][a-zA-Z0-9_]*):(!?null)$/i', $column, $matches)) {
+        if (preg_match('/([a-zA-Z_][a-zA-Z0-9_]*\.[a-zA-Z_][a-zA-Z0-9_]*):(!?null)$/i', $column, $matches)) {
             $column = $matches[1];
             $nullCondition = strtoupper($matches[2]);
             $where[] = "$column IS " . ($nullCondition === 'NULL' ? 'NULL' : 'NOT NULL');
             continue; // Skip adding conjunction for NULL conditions
         }
 
-        // Validate column name
-        if (!preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $column)) {
+        // Validate column name to allow for table prefixes
+        if (!preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*(\.[a-zA-Z_][a-zA-Z0-9_]*)?$/', $column)) {
             throw new InvalidArgumentException("Invalid column name: $column");
         }
 
@@ -106,6 +106,54 @@ function buildWhereClause($conditions) {
     $finalWhereClause = implode(' ', $where);
     return [$finalWhereClause, $values];
 }
+
+
+/**
+ * Build a JOIN clause for SQL queries.
+ * @param array $joins An array of join configurations.
+ * Each join configuration should be an array in the format: [table, condition, type].
+ * Example: ['users', 'users.id = orders.user_id', 'INNER']
+ * @return string The constructed JOIN clause.
+ * @throws InvalidArgumentException If the join configuration is invalid.
+ */
+function buildJoinClause($joins = []) {
+    if (empty($joins)) {
+        return '';
+    }
+
+    // Ensure $joins is an array of arrays
+    if (!is_array($joins[0])) {
+        $joins = [$joins];
+    }
+
+    $joinString = '';
+    foreach ($joins as $join) {
+        // Validate join configuration
+        if (!is_array($join) || count($join) !== 3) {
+            throw new InvalidArgumentException("Invalid join configuration. Expected format: [table, condition, type]");
+        }
+
+        list($join_table, $condition, $type) = $join;
+
+        // Validate table name
+        if (!preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $join_table)) {
+            throw new InvalidArgumentException("Invalid table name: $join_table");
+        }
+
+        // Validate join type
+        $validJoinTypes = ['INNER', 'LEFT', 'RIGHT', 'FULL', 'CROSS'];
+        $type = strtoupper($type);
+        if (!in_array($type, $validJoinTypes)) {
+            throw new InvalidArgumentException("Invalid join type: $type");
+        }
+
+        // Append to the join string
+        $joinString .= "$type JOIN $join_table ON $condition ";
+    }
+
+    return trim($joinString);
+}
+
 
 
 function executeStatement($sql, $types, $params) {
