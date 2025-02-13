@@ -395,6 +395,19 @@ function deleteData($table, $conditions) {
     return $success;
 }
 
+function getTableColumns($table) {
+    $conn = getDbConnection();
+
+    $columns = [];
+    $result = $conn->query("DESCRIBE $table");
+    while ($row = $result->fetch_assoc()) {
+        $columns[] = $row['Field'];
+    }
+
+    $conn->close();
+    return $columns;
+}
+
 
 function getLastInsertedId() {
     $conn = getDbConnection();
