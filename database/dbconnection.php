@@ -702,13 +702,6 @@ function getRows($table, $conditions = [], $asArray = false, $joins = [], $colum
         $sql .= " WHERE $whereClause";
     }
 
-    // Debugging output (remove in production)
-    echo "SQL Query: $sql\n";
-    if (!empty($conditions)) {
-        echo "WHERE Clause: $whereClause\n";
-        print_r($values);
-    }
-
     // Prepare the SQL statement
     $stmt = $conn->prepare($sql);
     if (!$stmt) {
